@@ -1,0 +1,4 @@
+﻿@types
+node_modules
+.idea
+dist

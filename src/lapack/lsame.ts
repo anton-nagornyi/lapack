@@ -1,0 +1,1 @@
+export const lsame_ = (str: string, c: string): boolean => str.startsWith(c);
