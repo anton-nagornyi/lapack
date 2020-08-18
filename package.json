@@ -4,7 +4,10 @@
   "version": "0.1.0",
   "main": "index.js",
   "types": "index.d.ts",
-  "repository": "https://github.com/anton-nagornyi/lapack.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anton-nagornyi/lapack.git"
+  },
   "dependencies": {},
   "keywords": ["lapack", "blas", "ts", "typescript"],
   "scripts": {
@@ -12,7 +15,7 @@
     "test": "jest"
   },
   "license": "MIT",
-  "files": ["dist/index.js","dist/index.d.ts", "README.md"],
+  "files": ["dist/index.js","dist/index.d.ts", "README.md", "LICENSE"],
   "devDependencies": {
     "@types/jest": "^24.9.1",
     "@types/node": "^14.0.27",
