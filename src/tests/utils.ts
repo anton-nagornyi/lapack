@@ -83,3 +83,22 @@ export const expectToBeCloseToArray = (actual: number[][], expected: number[][])
         }
     }
 };
+
+export const roundTo = (num: number, places: number): number =>
+{
+    const d = 10 ** places;
+    return Math.round((num + Number.EPSILON) * d) / d;
+};
+export const flatten = <T>(arr: Array<Array<T>>): Array<T> =>
+{
+    const d = arr[0].length;
+    const res = new Array<T>(arr.length * d);
+    for (let i = 0; i < arr.length; ++i)
+    {
+        for (let j = 0; j < d; ++j)
+        {
+            res[i * d + j] = arr[i][j];
+        }
+    }
+    return res;
+};

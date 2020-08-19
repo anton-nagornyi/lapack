@@ -2,11 +2,6 @@
 
 import {iparmq} from "./iparmq";
 
-const c__1 = 1;
-const c_b163 = 0.;
-const c_b164 = 1.;
-const c__0 = 0;
-
 export const ilaenv = (ispec: number, name__: string, opts: string, n1: number,
                        n2: number, n3: number, n4: number): number =>
 {

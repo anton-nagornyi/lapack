@@ -10,31 +10,13 @@ import {slange} from "../lapack/slange";
 import {sgetrf} from "../lapack/sgetrf";
 import {sgetrs} from "../lapack/sgetrs";
 import {saxpy} from "../blas/saxpy";
-import {expectToBeCloseToArray, extractMNArray, fillArray} from "./utils";
-
-
-const roundTo = (num: number, places: number): number =>
-{
-    const d = 10 ** places;
-    return Math.round((num + Number.EPSILON) * d) / d;
-};
-const flatten = <T>(arr: Array<Array<T>>): Array<T> =>
-{
-    const d = arr[0].length;
-    const res = new Array<T>(arr.length * d);
-    for (let i = 0; i < arr.length; ++i)
-    {
-        for (let j = 0; j < d; ++j)
-        {
-            res[i * d + j] = arr[i][j];
-        }
-    }
-    return res;
-};
+import {expectToBeCloseToArray, extractMNArray, fillArray, flatten, roundTo} from "./utils";
+import {strtri} from "../lapack/strtri";
+import {sgetri} from "../lapack/sgetri";
 
 describe("sgtsv", () =>
 {
-    it('B is 1d', () =>
+    it("B is 1d", () =>
     {
         const dl = [-1.0, 2.0];
         const du = [1.0, 4.0];
@@ -51,7 +33,7 @@ describe("sgtsv", () =>
         }
         expect(Array.from(b1)).toEqual([1.0, 2.0, 3.0]);
     });
-    it('B is 3d', () =>
+    it("B is 3d", () =>
     {
         const dl = [3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0];
         const du = [4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0, 4.0];
@@ -251,7 +233,7 @@ it("sscal", () =>
 });
 describe("sgbsv", () =>
 {
-    it('B is 1d', () =>
+    it("B is 1d", () =>
     {
         const a1 = [
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,],
@@ -459,4 +441,65 @@ it("saxpy", () =>
    const y1 = fillArray([5, 6, 7, 8]);
    saxpy(2, 2, x1, 2, y1, 2);
    expect(y1.join(",")).toBe([ 7, 6, 13, 8 ].join(","));
+});
+
+it("strtri", () =>
+{
+    const a = fillArray([
+        [1.0,  3.0,  4.0,  5.0,  6.0],
+        [0.0,  2.0,  8.0,  9.0,  1.0],
+        [0.0,  0.0,  4.0,  8.0,  4.0],
+        [0.0,  0.0,  0.0, -2.0,  6.0],
+        [0.0,  0.0,  0.0,  0.0, -1.0]
+    ]);
+    const info = new LapackInfo();
+    strtri("U", "N", 5, a,5, info);
+    const res = extractMNArray(a, 5, 5) as number[][];
+    expectToBeCloseToArray(res, [
+        [ 1, -1.5, 2, 3.75, 35 ],
+        [ 0, 0.5, -1, -1.75, -14 ],
+        [ 0, 0, 0.25, 1, 7 ],
+        [ 0, 0, 0, -0.5, -3 ],
+        [ 0, 0, 0, 0, -1 ]
+    ])
+});
+
+it("sgetri", () =>
+{
+    const a = fillArray([
+        [ 4.0000,  1.0000,  1.0000,  1.0000,   1.0000,   1.0000,   0.0000,   0.0000,   0.0000 ],
+        [ 0.0000,  5.0000,  1.0000,  1.0000,   1.0000,   1.0000,   1.0000,   0.0000,   0.0000 ],
+        [ 0.0000,  0.0000,  6.0000,  1.0000,   1.0000,   1.0000,   1.0000,   1.0000,   0.0000 ],
+        [ 0.0000,  0.0000,  0.0000,  7.0000,   1.0000,   1.0000,   1.0000,   1.0000,   1.0000 ],
+        [ 0.0000,  0.0000,  0.0000,  0.0000,   8.0000,   1.0000,   1.0000,   1.0000,   1.0000 ],
+        [ 0.0000,  0.0000,  0.0000,  0.0000,   0.0000,   9.0000,   1.0000,   1.0000,   1.0000 ],
+        [ 0.0000,  0.0000,  0.0000,  0.0000,   0.0000,   0.0000,  10.0000,  11.0000,  12.0000 ],
+        [ 0.2500,  0.1500,  0.1000,  0.0714,   0.0536,  -0.0694,  -0.0306,   0.1806,   0.3111 ],
+        [ 0.2500,  0.1500,  0.1000,  0.0714,  -0.0714,  -0.0556,  -0.0194,   0.9385,  -0.0031 ]
+    ]);
+    const ipiv = new Int32Array([3, 4, 5, 6, 7, 8, 9, 8, 9]);
+    const info = new LapackInfo();
+    let work = new Float32Array(a.length);
+    sgetri(9, a, 9, ipiv, work, work.length, info);
+
+    const res = extractMNArray(a, 9, 9) as number[][];
+
+    for (let i = 0; i < res.length; ++i)
+    {
+        for (let j = 0; j < res[i].length; ++j )
+        {
+            res[i][j] = roundTo(res[i][j], 3);
+        }
+    }
+    expectToBeCloseToArray(res, [
+        [ 0.341, -0.674, -1.159, -0.495, -0.497, -0.355, 6.781, -0.47, -0.501 ],
+        [ 56.377, -51.741, -1.159, -0.495, -0.497, -0.355, 6.781, -0.47, -0.501 ],
+        [ -54.758, 51.452, 0.827, 0.496, 0.497, 0.212, -6.685, 0.512, 0.501 ],
+        [ -0.994, 0.995, -0, -0, -0, -0, 0.001, -0, 0 ],
+        [ -0.994, 0.995, -0, -0, -0, -0, 0.001, -0, 0 ],
+        [ -0.994, 0.995, -0, -0, -0, -0, -0.124, 0.125, 0 ],
+        [ -224.145, 204.27, -9.928, -5.957, -3.971, -2.835, 67.331, -4.912, -5.008 ],
+        [ 555.675, -515.964, -9.928, -5.957, -3.971, -2.835, 67.331, -4.912, -5.008 ],
+        [ -322.581, 302.742, 4.96, 2.976, 1.984, 1.416, -39.259, 3.075, 3.006 ]
+    ])
 });
