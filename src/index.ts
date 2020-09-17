@@ -1,3 +1,4 @@
+export * from "./info"
 export * from "./lapack/i_nint"
 export * from "./lapack/ilaenv"
 export * from "./lapack/iparmq"

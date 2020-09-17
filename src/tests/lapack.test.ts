@@ -13,6 +13,7 @@ import {saxpy} from "../blas/saxpy";
 import {expectToBeCloseToArray, extractMNArray, fillArray, flatten, roundTo} from "./utils";
 import {strtri} from "../lapack/strtri";
 import {sgetri} from "../lapack/sgetri";
+import {sgemm} from "../blas/sgemm";
 
 describe("sgtsv", () =>
 {
@@ -502,4 +503,86 @@ it("sgetri", () =>
         [ 555.675, -515.964, -9.928, -5.957, -3.971, -2.835, 67.331, -4.912, -5.008 ],
         [ -322.581, 302.742, 4.96, 2.976, 1.984, 1.416, -39.259, 3.075, 3.006 ]
     ])
+});
+
+it("inverse", () =>
+{
+    const a = fillArray([
+        [0.91266,	-0.16671,	1.32885,	120.00000],
+        [0.62074,	0.54915,	-0.75244,	100.00000],
+        [-0.47088,	0.40080,	1.58366,	12.00000],
+        [0.00000,	0.00000,	0.00000,	1.00000]
+    ]);
+    const ipiv = new Int32Array(4);
+    const info = new LapackInfo();
+    sgetrf(4, 4, a,4, ipiv, info);
+    const work = new Float32Array(a.length);
+    sgetri(4, a, 4, ipiv, work, 4, info);
+
+    const res = flatten(extractMNArray(a, 4, 4) as number[][]);
+    console.log(res);
+    //0.6337931f, 0.431069f, -0.327002f, -115.238f,  -0.3402207f, 1.120715f, 0.8179638f, -81.06056f,  0.2745558f, -0.1554637f, 0.3272029f, -21.32676f,  0f, 0f, 0f, 1f
+});
+it("mul", () =>
+{
+    const a = fillArray([
+        [0.6337931, 0.431069, -0.327002, -115.238],
+        [-0.3402207, 1.120715, 0.8179638, -81.06056],
+        [0.2745558, -0.1554637, 0.3272029, -21.32676],
+        [0, 0, 0, 1]
+    ]);
+
+    const b = fillArray([
+        [0.91266,	-0.16671,	1.32885,	120.00000],
+        [0.62074,	0.54915,	-0.75244,	100.00000],
+        [-0.47088,	0.40080,	1.58366,	12.00000],
+        [0.00000,	0.00000,	0.00000,	1.00000]
+    ]);
+
+    const c = new Float32Array(16);
+    sgemm("N", "N", 4, 4, 4, 1, a, 4, b, 4, 1, c, 4);
+    const res = extractMNArray(c, 4, 4) as number[][];
+    for (let i = 0; i < res.length; ++i)
+    {
+        for (let j = 0; j < res[i].length; ++j )
+        {
+            res[i][j] = roundTo(res[i][j], 3);
+        }
+    }
+    console.log(res);
+    //1f, 1.490116E-08f, -1.192093E-07f, 0f,  -5.960464E-08f, 1f, 1.192093E-07f, 7.629395E-06f,  1.490116E-08f, 0f, 1f, 1.907349E-06f,  0f, 0f, 0f, 1f
+
+});
+it("sort", () =>
+{
+    const a = [10, 20, 1, 30, 4, 7, 8];
+    for (let i = 1; i < a.length; ++i)
+    {
+        const x = a[i];
+        let j = i;
+        while (j > 0 && a[j - 1] > x)
+        {
+            a[j] = a[--j];
+        }
+        a[j] = x;
+    }
+    //[ 10, 20, 1, 30, 4, 7, 8 ]
+    //[ 1, 10, 20, 30, 4, 7, 8 ]
+    //[ 1, 10, 20, 30, 4, 7, 8 ]
+    //[ 1, 4, 10, 20, 30, 7, 8 ]
+    //[ 1, 4, 7, 10, 20, 30, 8 ]
+    //[ 1, 4, 7, 8, 10, 20, 30 ]
+
+    console.log(a);
+    /*
+    for i = 2 to n do
+    x = A[i]
+    j = i
+    while (j > 1 and A[j-1] > x) do
+        A[j] = A[j-1]
+        j = j - 1
+    end while
+    A[j] = x
+end for[6]
+     */
 });

@@ -1,7 +1,7 @@
 {
   "name": "anny.lapack",
   "author": "Anton Nagornyi",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "main": "index.js",
   "types": "index.d.ts",
   "repository": {
@@ -15,7 +15,7 @@
     "test": "jest"
   },
   "license": "MIT",
-  "files": ["dist/index.js","dist/index.d.ts", "README.md", "LICENSE"],
+  "files": ["index.js","index.d.ts", "README.md", "LICENSE"],
   "devDependencies": {
     "@types/jest": "^24.9.1",
     "@types/node": "^14.0.27",

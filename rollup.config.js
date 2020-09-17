@@ -6,7 +6,7 @@ export default [
 	{
 		input: 'src/index.ts',
 		output: {
-			dir: './dist',
+			dir: './',
 			format: 'cjs',
 		},
 		plugins: [typescript({
@@ -19,7 +19,7 @@ export default [
 	},
 	{
 		input: "./@types/index.d.ts",
-		output: [{ file: "./dist/index.d.ts", format: "es" }],
+		output: [{ file: "./index.d.ts", format: "es" }],
 		plugins: [dts()],
 	},
 ];
